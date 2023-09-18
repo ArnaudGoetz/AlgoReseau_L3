@@ -16,7 +16,7 @@ Les seuls numéros de port valides sont ceux contenus dans l'intervalle `[10000;
 
 Vous devez dans un premier temps créer un socket `IPv4` et `UDP` via la primitive :
 
-    int socket (int socket, int domain, int type, int protocol)
+    int socket (int domain, int type, int protocol)
 
 Ensuite, vous devez renseigner l'adresse `IPv4` et le port du destinataire dans une variable de type `struct sockaddr_in` définie dans `<netinet/in.h>` :
 
