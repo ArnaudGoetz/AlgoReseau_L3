@@ -61,8 +61,8 @@ int main (int argc, char *argv[])
     socklen_t sender_info_len = list->ai_addrlen;
     int rec = recvfrom(udp_socket, buf, SIZE, 0, list->ai_addr, &sender_info_len);
     CHECK(rec);
-    
-    printf("%s\n", buf);
+
+    printf("%s", buf);
 
     /* print sender addr and port */
     char host[SIZE];
@@ -72,7 +72,6 @@ int main (int argc, char *argv[])
         fprintf(stderr, "getnameinfo: %s\n", gai_strerror(err));
         return EXIT_FAILURE;
     }
-
    
     printf("%s %s\n", host, serv);
     free(buf);
