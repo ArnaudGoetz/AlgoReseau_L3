@@ -73,7 +73,7 @@ int main (int argc, char *argv [1])
         return EXIT_FAILURE;
     }
 
-    printf("%s\n", buf);
+    printf("%s", buf);
     printf("%s  %s\n", host, serv);
     free(buf);
 
