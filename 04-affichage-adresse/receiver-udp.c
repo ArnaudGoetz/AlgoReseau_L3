@@ -69,7 +69,7 @@ int main (int argc, char *argv [1])
     char serv[SIZE];
     int err = getnameinfo((struct sockaddr *) &ss, ss_len, host, SIZE, serv, SIZE, 0); 
     if( err != 0){
-        fprintf(stderr, "getnameinfo :%s\n", gai_strerror(inf));
+        fprintf(stderr, "getnameinfo :%s\n", gai_strerror(inf)); // gestion d'erreur
         return EXIT_FAILURE;
     }
 
