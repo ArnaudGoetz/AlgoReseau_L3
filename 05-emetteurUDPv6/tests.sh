@@ -3,34 +3,94 @@
 PROG="./sender-udp"
 PORT=`shuf -i 10000-65000 -n 1`
 
+OUT="/tmp/$$"
+mkdir $OUT
+
+IP="::1"
+
+######################################
+
 echo -n "test 01 - program without arg: "
-$PROG > /dev/null 2>&1 && echo "KO -> exit status $? instead of 1" && exit 1 
-echo "...........OK"
+
+echo "usage: $PROG ip_addr port_number" > $OUT/usage
+$PROG > $OUT/stdout 2> $OUT/stderr       && echo "KO -> exit status $? instead of 1"                              && exit 1
+! cmp -s $OUT/usage $OUT/stderr          && echo "KO -> unexpected output on stderr => check file \"$OUT/usage\"" && exit 1
+[ -s $OUT/stdout ]                       && echo "KO -> output detected on stdout"                                && exit 1
+
+$PROG a > $OUT/stdout 2> $OUT/stderr     && echo "KO -> exit status $? instead of 1"                              && exit 1
+! cmp -s $OUT/usage $OUT/stderr          && echo "KO -> unexpected output on stderr => check file \"$OUT/usage\"" && exit 1
+[ -s $OUT/stdout ]                       && echo "KO -> output detected on stdout"                                && exit 1
+
+$PROG a b c > $OUT/stdout 2> $OUT/stderr && echo "KO -> exit status $? instead of 1"                              && exit 1
+! cmp -s $OUT/usage $OUT/stderr          && echo "KO -> unexpected output on stderr => check file \"$OUT/usage\"" && exit 1
+[ -s $OUT/stdout ]                       && echo "KO -> output detected on stdout"                                && exit 1
+
+echo "........OK"
+
+######################################
 
 echo -n "test 02 - invalid port number: "
-$PROG 65001 > /dev/null 2>&1 && echo "KO -> exit status $? instead of 1" && exit 1 
+
+$PROG a 65001 > $OUT/stdout 2> $OUT/stderr && echo "KO -> exit status $? instead of 1" && exit 1
+! [ -s $OUT/stderr ]                       && echo "KO -> no output on stderr"         && exit 1
+[ -s $OUT/stdout ]                         && echo "KO -> output detected on stdout"   && exit 1
+
+$PROG a 9999  > $OUT/stdout 2> $OUT/stderr && echo "KO -> exit status $? instead of 1" && exit 1
+! [ -s $OUT/stderr ]                       && echo "KO -> no output on stderr"         && exit 1
+[ -s $OUT/stdout ]                         && echo "KO -> output detected on stdout"   && exit 1
+
+echo "........OK"
+
+######################################
+
+echo -n "test 03 - getaddrinfo usage: "
+
+ERROR="Name or service not known"
+LC_ALL=C $PROG a $PORT > $OUT/stdout 2> $OUT/stderr && echo "KO -> exit status $? instead of 1"                           && exit 1
+! grep -q "$ERROR" $OUT/stderr                      && echo "KO -> unexpected output on stderr, do you use gai_strerror?" && exit 1
+[ -s $OUT/stdout ]                                  && echo "KO -> output detected on stdout"                             && exit 1
+
+echo "..........OK"
+
+######################################
+
+echo -n "test 04 - program exits without error: "
+
+timeout 5 nc -6ul $IP $PORT > $OUT/msg_r &
+sleep 2
+! $PROG $IP $PORT > $OUT/stdin 2> $OUT/stderr && echo "KO -> exit status != 0"          && exit 1
+[ -s $OUT/stderr ]                            && echo "KO -> output detected on stderr" && exit 1
+[ -s $OUT/stdout ]                            && echo "KO -> output detected on stdout" && exit 1
+
+echo "OK"
+
+######################################
+
+echo -n "test 05 - program sends a message: "
+
+! [ -s $OUT/msg_r ] && echo "KO -> no message received (stdout empty)" && exit 1
+
+echo "....OK"
+
+######################################
+
+echo -n "test 06 - message is valid: "
+
+printf "hello world" > $OUT/msg_o
+! cmp -s $OUT/msg_o $OUT/msg_r && echo "KO -> check files \"$OUT/msg_o\" (expected) and \"$OUT/msg_r\" (sent)" && exit 1
+
 echo "...........OK"
 
-echo -n "test 03 - program exits without error: "
-timeout 5 nc -6ul ::1 $PORT > output &
-sleep 2
-! $PROG $PORT 2> /dev/null && echo "KO -> exit status != 0" && exit 1
-echo "...OK"
 
-echo -n "test 04 - program sends a message: "
-MES=`cat output`
-[ -z "$MES" ] && echo "KO -> no message" && exit 1
-echo ".......OK"
+######################################
 
-echo -n "test 05 - message is valid: "
-[ "$MES" != "hello world" ] && echo "KO - received: $MES | expected: hello world" && exit 1
-echo "..............OK"
+echo -n "test 07 - memory error: "
 
-echo -n "test 06 - memory error: "
 P=`which valgrind`
 [ -z "$P" ] && echo "KO -> please install valgrind" && exit 1
-valgrind --leak-check=full --error-exitcode=100 --log-file=valgrind.log $PROG $PORT
+valgrind --leak-check=full --error-exitcode=100 --log-file=$OUT/valgrind.log $PROG $IP $PORT
 [ "$?" == "100" ] && echo "KO -> memory pb please check valgrind.log" && exit 1
-echo "..................OK"
 
-rm output valgrind.log
+echo "...............OK"
+
+rm -r $OUT

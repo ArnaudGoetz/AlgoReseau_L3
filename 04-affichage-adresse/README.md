@@ -1,34 +1,26 @@
 # Algorithmes des réseaux
 
-## Affichage d'adresse IP et port
+## Expéditeur UDP IPv6
 
-Dans l'exercice précédent, les informations de l'expéditeur (adresse IP et port) n'étaient pas enregistrées lors de l'appel à `recvfrom()`. Dans cet exercice, vous allez récupérer ces informations et les afficher sous la forme de chaînes de caractères. La sortie de votre programme doit être de la forme suivante :
+Complétez le programme `sender-udp.c` pour envoyer le message texte `hello world` avec les protocoles `IPv6` et `UDP`.
 
-    ./receiver-udp 10001
-    hello world
-    192.168.1.1 57123
+Le programme admet en argument l'adresse IP et le numéro de port de l'hôte distant à contacter :
 
-Une telle sortie indique que votre programme a reçu le message `hello world` d'une source dont l'adresse IP est `192.168.1.1` et le port est `57123`.
+    ./sender-udp ip_addr port_number
 
-**Objectifs :** savoir récupérer les informations d'un expéditeur et les afficher.
+Les seuls numéros de port valides sont ceux contenus dans l'intervalle `[10000; 65000]`.
 
-## Marche à suivre
+**Objectifs :** savoir créer un socket IPv6 et transmettre un message texte en UDP.
 
-Reprennez le code source de l'exercice précédent.
+## Marche à suivre :
 
-Vous pouvez récupérer des informations sur l'expéditeur via les deux derniers paramètres de la primitive `recvfrom()` qui permettent de compléter une variable de type `struct sockaddr_storage` castée en un pointeur vers une structure `struct sockaddr`.
+Vous pouvez directement reprendre le code réalisé dans l'exercice 2 et mettre à jour les parties spécifiques à `IPv4`. Ici l'hôte distant sera joignable sur l'adresse `::1` et le port passé en argument du programme.
 
-Ensuite, vous pouvez transformer les informations contenues dans cette structure (adresse IP et port) en des chaînes de caractères via la fonction :
+Vous pouvez tester votre programme en exécutant la commande `nc` (netcat) dans un autre terminal afin d'écouter en UDP sur l'adresse `::1` et le port de votre choix :
 
-     int getnameinfo (const struct sockaddr *sa, socklen_t salen, char *host, socklen_t hostlen, char *serv, socklen_t servlen, int flags)
+    nc -6ul ::1 port_number
 
-Consultez le manuel utilisateur pour connaître les options possibles et comment traiter les erreurs associées à la fonction `getnameinfo()`.
-
-Vous pouvez tester votre programme avec le programme réalisé dans l'exercice 2 ou en exécutant la commande `nc` (netcat) dans un autre terminal. Lancez votre programme dans un terminal puis exécutez la commande suivante dans un second terminal afin d'envoyer le message `hello world` en UDP sur l'adresse `127.0.0.1` et le port utilisé par votre programme, et le port de votre choix en tant que port local :
-
-    echo "hello world" | nc -4u -w1 127.0.0.1 port_du_prog -p port_local_pour_netcat
-
-Vérifiez ensuite que l'adresse IP et le port affichés par votre programme sont conformes à ceux utilisés par l'expéditeur.
+Vous pouvez ensuite lancer votre programme dans un autre terminal et vérifier que le message transmis est bien affiché par `netcat` sur la sortie standard.
 
 ## Validation
 
