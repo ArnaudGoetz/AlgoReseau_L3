@@ -28,7 +28,7 @@ int main (int argc, char *argv [])
     }
 
     /* create socket */
-    int udp_socket = socket(AF_INET6, SOCK_DGRAM, 0);
+    int udp_socket = socket(AF_INET6, SOCK_DGRAM, 0); // IPv6
     CHECK(udp_socket);
 
      /* IP and port*/
