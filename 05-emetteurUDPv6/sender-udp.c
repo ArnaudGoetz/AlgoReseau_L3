@@ -53,7 +53,8 @@ int main (int argc, char *argv [])
 
     /* send message to remote peer */
     char buf[] = "hello world";
-    CHECK(sendto(udp_socket, buf, 11, 0, list->ai_addr, list->ai_addrlen));
+    int sen = sendto(udp_socket, buf, 11, 0, list->ai_addr, list->ai_addrlen);
+    CHECK(sen);
 
     /* close socket */
     CHECK(close(udp_socket));
