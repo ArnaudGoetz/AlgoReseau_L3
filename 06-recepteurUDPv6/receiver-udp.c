@@ -16,16 +16,16 @@
 int main (int argc, char *argv[])
 {
     /* test arg number */
-    if (argc != 2) {
-        fprintf(stderr, "Usage : %s port number", argv[0]);
-        return EXIT_FAILURE;
+    if (argc != 3) {
+        fprintf(stderr, "usage: %s ip_addr port_number\n", argv[0]);
+        return 1;
     }
 
     /* convert and check port number */
-    unsigned short port_number = atoi(argv[1]);
+    unsigned short port_number = atoi(argv[2]);
     if (port_number < 10000 || port_number > 65000) {
-        fprintf(stderr, "Usage : %s port number", argv[0]);
-        return EXIT_FAILURE;
+        fprintf(stderr, "usage: %s ip_addr port_number\n", argv[0]);
+        return 1;
     }
 
     /* create socket */
@@ -41,15 +41,15 @@ int main (int argc, char *argv[])
 
     struct addrinfo *list;
     
-    int inf = getaddrinfo(IP, argv[1], &hints, &list);
+    int inf = getaddrinfo(argv[1], argv[2], &hints, &list);
     if (inf != 0) {
-        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(inf));
-        return EXIT_FAILURE;
+        fprintf(stderr, "Name or service not known %s\n", gai_strerror(inf));
+        return 1;
     }
 
     if (list == NULL) {
         fprintf(stderr, "pas de ports");
-        return EXIT_FAILURE;
+        return 1;
     }
 
     /* link socket to local IP and PORT */
@@ -57,24 +57,25 @@ int main (int argc, char *argv[])
     CHECK(bd);
 
     /* wait for incoming message */
-    char *buf = malloc(sizeof(char) * SIZE);
-    socklen_t sender_info_len = list->ai_addrlen;
-    int rec = recvfrom(udp_socket, buf, SIZE, 0, list->ai_addr, &sender_info_len);
+    char buf[SIZE];
+    struct sockaddr_storage sender_addr;
+    socklen_t sender_addr_len = sizeof(sender_addr);
+    int rec = recvfrom(udp_socket, buf, SIZE, 0, (struct sockaddr *)&sender_addr, &sender_addr_len);
     CHECK(rec);
+    buf[rec] = '\0'; // memory error fix
 
     printf("%s", buf);
 
     /* print sender addr and port */
     char host[SIZE];
     char serv[SIZE];
-    int err = getnameinfo(list->ai_addr, sender_info_len, host, SIZE, serv, SIZE, NI_NUMERICHOST || NI_NUMERICSERV);
+    int err = getnameinfo((struct sockaddr *)&sender_addr, sender_addr_len, host, SIZE, serv, SIZE, NI_NUMERICHOST | NI_NUMERICSERV);
     if (err != 0) {
         fprintf(stderr, "getnameinfo: %s\n", gai_strerror(err));
         return EXIT_FAILURE;
     }
    
     printf("%s %s\n", host, serv);
-    free(buf);
 
     /* close socket */
     CHECK(close(udp_socket));
