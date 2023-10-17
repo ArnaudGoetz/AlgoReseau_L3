@@ -10,6 +10,8 @@ IP="::1"
 OUT="/tmp/$$"
 mkdir $OUT
 
+SE=$(uname -s)
+
 ######################################
 
 echo -n "test 01 - program usage: "
@@ -48,6 +50,10 @@ echo "..............OK"
 echo -n "test 03 - getaddrinfo usage: "
 
 ERROR="Name or service not known"
+if [ "$SE" == "Darwin" ]; then
+    ERROR="nodename nor servname provided, or not known"
+fi
+
 LC_ALL=C $PROG a $PORT > $OUT/stdout 2> $OUT/stderr && echo "KO -> exit status $? instead of 1"                           && exit 1
 ! grep -q "$ERROR" $OUT/stderr                      && echo "KO -> unexpected output on stderr, do you use gai_strerror?" && exit 1
 [ -s $OUT/stdout ]                                  && echo "KO -> output detected on stdout"                             && exit 1
@@ -120,8 +126,8 @@ echo "OK"
 
 echo -n "test 09 - printed IP is valid: "
 
-IP=`cat $OUT/stdout | tail -1 | cut -d ' ' -f1`
-[ "$IP" != "$IP" ] && echo "KO -> printed IP: $IP | expected: $IP" && exit 1
+PRINTEDIP=`cat $OUT/stdout | tail -1 | cut -d ' ' -f1`
+[ "$PRINTEDIP" != "$IP" ] && echo "KO -> printed IP: $PRINTEDIP | expected: $IP" && exit 1
 
 echo "..............OK"
 
@@ -129,8 +135,8 @@ echo "..............OK"
 
 echo -n "test 10 - printed PORT is valid: "
 
-PORT=`cat $OUT/stdout | tail -1 | cut -d ' ' -f2`
-[ "$PORT" != "$PORT_C" ] && echo "KO -> printed PORT: $PORT | expected: $PORT_C" && exit 1
+PRINTEDPORT=`cat $OUT/stdout | tail -1 | cut -d ' ' -f2`
+[ "$PRINTEDPORT" != "$PORT_C" ] && echo "KO -> printed PORT: $PRINTEDPORT | expected: $PORT_C" && exit 1
 
 echo "............OK"
 
