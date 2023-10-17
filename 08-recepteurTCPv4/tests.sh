@@ -192,7 +192,7 @@ P=`which valgrind`
 
 LC_ALL=C tr -dc "A-Za-z0-9" < /dev/urandom | head -c 2049 > $OUT/toto
 
-valgrind --leak-check=full --error-exitcode=100 --log-file=$OUT/valgrind.log $PROG $PORT > /dev/null &
+valgrind --leak-check=full --error-exitcode=100 --log-file=$OUT/valgrind.log $PROG $IP $PORT > /dev/null &
 V=$!
 sleep 3
 
