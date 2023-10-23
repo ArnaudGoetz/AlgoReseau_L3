@@ -41,6 +41,7 @@ int main (int argc, char *argv [])
     int inf = getaddrinfo(argv[1], argv[2], &hints, &list);
     if (inf != 0) {
         fprintf(stderr, "Name or service not known %s\n", gai_strerror(inf)); 
+        // fprintf(stderr, "getaddrinfo : %s\n", gai_strerror(inf)); 
         return 1; 
     }
 
@@ -66,7 +67,7 @@ int main (int argc, char *argv [])
     
     int ins = getnameinfo((struct sockaddr *)&sender_addr, sender_addr_len, host, SIZE, serv, SIZE, NI_NUMERICHOST | NI_NUMERICSERV);
     if (ins != 0) {
-        fprintf(stderr, "gatnameinfo: %s\n", gai_strerror(ins));
+        fprintf(stderr, "getnameinfo: %s\n", gai_strerror(ins));
         return 1; 
     }
 
