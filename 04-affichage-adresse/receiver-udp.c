@@ -41,7 +41,7 @@ int main (int argc, char *argv [])
     int inf = getaddrinfo(argv[1], argv[2], &hints, &list);
     if (inf != 0) {
         fprintf(stderr, "Name or service not known %s\n", gai_strerror(inf)); 
-        // fprintf(stderr, "getaddrinfo : %s\n", gai_strerror(inf)); 
+        // fprintf(stderr, "%s\n", gai_strerror(inf)); 
         return 1; 
     }
 
