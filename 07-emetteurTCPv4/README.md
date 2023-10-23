@@ -4,9 +4,9 @@
 
 Complétez le programme `sender-tcp.c` pour envoyer le message `hello world` avec les protocoles `IPv4` et `TCP`.
 
-Le programme admet en argument le numéro de port de l'hôte distant à contacter :
+Le programme admet en argument l'adresse IP et le numéro de port de l'hôte distant à contacter :
 
-    ./sender-tcp port_number
+    ./sender-tcp ip_addr port_number
 
 Les seuls numéros de port valides sont ceux contenus dans l'intervalle [10000; 65000].
 
@@ -18,7 +18,7 @@ Vous devez dans un premier temps créer un socket `IPv4` et `TCP` via la primiti
 
     int socket (int domain, int type, int protocol)
 
-Ensuite, vous pouvez récupérer votre code de l'exercice 2 pour renseigner l'adresse `IPv4` et le port du destinataire à l'aide de la fonction `getaddrinfo()`. Le destinataire sera joignable sur l'adresse `127.0.0.1` et le port passé en argument du programme. N'oubliez pas de mettre à jour le type de socket dans la structure `hints`.
+Ensuite, vous pouvez récupérer votre code de l'exercice 2 pour renseigner l'adresse `IPv4` et le port du destinataire à l'aide de la fonction `getaddrinfo()`. Le destinataire sera joignable sur l'adresse et le port passés en argument du programme. N'oubliez pas de mettre à jour le type de socket dans la structure `hints`.
 
 Vous devez maintenant vous connecter au serveur pour initier la transaction TCP (3-ways handshake) via la fonction :
 
@@ -32,11 +32,13 @@ Sans option (`flags = 0`), cette primitive est équivalente à :
 
     ssize_t write (int fildes, const void *buf, size_t nbyte)
 
-Vous pouvez tester votre programme en exécutant la commande `nc` (netcat) dans un autre terminal afin d'écouter en TCP sur l'adresse `127.0.0.1` et le port de votre choix :
+que vous pouvez utiliser si vous êtes nostalgique de l'UE programmation système.
 
-    nc -4l 127.0.0.1 port_number
+Vous pouvez tester votre programme en exécutant la commande `nc` (netcat) dans un autre terminal afin d'écouter en TCP sur l'une des adresses IP de votre poste et le port de votre choix :
 
-Vous pouvez ensuite lancer votre programme dans un autre terminal avec le même port en argument et vérifier que le message transmis est bien affiché par `netcat` sur la sortie standard.
+    nc -4l ip_addr port_number
+
+Vous pouvez ensuite lancer votre programme dans un autre terminal avec la même adresse IP et le même port en argument et vérifier que le message transmis est bien affiché par `netcat` sur la sortie standard.
 
 ## Validation
 
