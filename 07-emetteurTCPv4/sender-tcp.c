@@ -15,15 +15,15 @@
 int main (int argc, char *argv [])
 {
     /* test arg number */
-    if(argc != 2){
-        fprintf(stderr, "Usage : %s arg number", argv[0]);
-        return EXIT_FAILURE;
+    if(argc != 3){
+        fprintf(stderr, "usage: %s ip_addr port_number\n", argv[0]);
+        return 1;
     }
     /* convert and check port number */
-    unsigned short port_number = atoi(argv[1]);
+     unsigned short port_number = atoi(argv[2]);
     if ( port_number < 10000 || port_number > 65000){
-        fprintf(stderr,"Usage : %s port number", argv[0]);
-        return EXIT_FAILURE;
+        fprintf(stderr,"usage: %s ip_addr port_number\n", argv[0]);
+        return 1;
     }
     /* create socket */
     int tcp_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -38,11 +38,14 @@ int main (int argc, char *argv [])
 
     struct addrinfo *list;
     
-    int inf = getaddrinfo(IP,argv[1],&st,&list);
-    CHECK(inf);
+    int inf = getaddrinfo(argv[1],argv[2],&st,&list);
+    if (inf != 0) {
+        fprintf(stderr, "%s\n", gai_strerror(inf)); 
+        return 1; 
+    }
 
     if(list == NULL){
-        fprintf(stderr, "pas de ports");
+        // fprintf(stderr, "pas de ports");
         return EXIT_FAILURE;
     }
 
@@ -52,8 +55,8 @@ int main (int argc, char *argv [])
 
     /* send the message */
     char buf[] = "hello world";
-    int send = sendto(tcp_socket, buf, strlen(buf), 0, list->ai_addr, list->ai_addrlen);
-    CHECK(send);
+    ssize_t s = send(tcp_socket, buf, strlen(buf), 0);
+    CHECK(s); 
 
     /* close socket */
     int clo = close(tcp_socket);
