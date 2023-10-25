@@ -40,7 +40,7 @@ int main (int argc, char *argv [])
 
     int inf = getaddrinfo(argv[1], argv[2], &hints, &list);
     if (inf != 0) {
-        //fprintf(stderr, "Name or service not known %s", gai_strerror(inf)); 
+        //fprintf(stderr, "Name or service not known %s", gai_strerror(inf)); SORCELLERIE
         fprintf(stderr, "%s", gai_strerror(inf)); 
         return 1; 
     }
