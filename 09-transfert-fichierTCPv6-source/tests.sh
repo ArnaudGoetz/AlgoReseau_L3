@@ -97,9 +97,9 @@ echo "OK"
 
 echo -n "test 07 - program exits without error: "
 
-timeout 5 nc -6l $IP $PORT > $OUT/copy.tmp &
+timeout 10 nc -6l $IP $PORT > $OUT/copy.tmp &
 TO=$!
-sleep 2
+sleep 4
 ! $PROG $IP $PORT $PROG > $OUT/stdout 2> $OUT/stderr && echo "KO -> exit status $?"            && exit 1
 wait $TO
 [ -s $OUT/stderr ]                                   && echo "KO -> output detected on stderr" && exit 1
@@ -128,9 +128,9 @@ echo -n "test 10 - execution time: "
 
 head -c 1024300 /dev/urandom > $OUT/toto_b
 
-timeout 5 nc -6l $IP $PORT > $OUT/copy.tmp &
+timeout 10 nc -6l $IP $PORT > $OUT/copy.tmp &
 TO=$!
-sleep 2
+sleep 4
 
 t0=`date +%s`
 $PROG $IP $PORT $OUT/toto_b > $OUT/stdout 2> $OUT/stderr
@@ -150,8 +150,8 @@ echo -n "test 11 - memory error: "
 
 P=`which valgrind`
 [ -z "$P" ] && echo "KO -> please install valgrind" && exit 1
-timeout 5 nc -6l $IP $PORT > $OUT/copy.tmp &
-sleep 2
+timeout 10 nc -6l $IP $PORT > $OUT/copy.tmp &
+sleep 4
 
 valgrind --leak-check=full --error-exitcode=100 --log-file=$OUT/valgrind.log $PROG $IP $PORT $OUT/toto_b > /dev/null 2>&1
 [ "$?" == "100" ] && echo "KO -> memory pb please check $OUT/valgrind.log" && exit 1

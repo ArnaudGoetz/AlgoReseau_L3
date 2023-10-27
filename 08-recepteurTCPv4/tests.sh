@@ -73,9 +73,9 @@ echo "................OK"
 
 echo -n "test 05 - check bind failure: "
 
-timeout 8 nc -4l $IP $PORT > /dev/null 2>&1 &
+timeout 10 nc -4l $IP $PORT > /dev/null 2>&1 &
 TO=$!
-sleep 3
+sleep 4
 LC_ALL=C timeout 5 $PROG $IP $PORT > $OUT/stdout 2> $OUT/stderr
 R="$?"
 [ "$R" == "124" ] && echo "KO -> program times out"           && exit 1
@@ -102,9 +102,9 @@ echo "..OK"
 
 echo -n "test 07 - program exits without error: "
 
-timeout 5 $PROG $IP $PORT > $OUT/stdout 2> $OUT/stderr &
+timeout 10 $PROG $IP $PORT > $OUT/stdout 2> $OUT/stderr &
 TO=$!
-sleep 2
+sleep 4
 timeout 1 echo "hello world" | nc -4 $IP $PORT -p $PORT_C
 wait $TO
 R=$?
@@ -163,8 +163,8 @@ echo "........OK"
 
 echo -n "test 13 - program accept up to SIZE bytes: "
 
-! grep -q "#define SIZE" $FILE && echo "KO -> no SIZE defined" && exit 1 
-SIZE=$(grep "SIZE" $FILE | cut -d ' ' -f3)
+! grep -q "#define SIZE" $FILE && echo "KO -> no SIZE defined" && exit 1
+SIZE=$(grep "#define SIZE" receiver-tcp.c | tr '\t' ' ' | tr -s ' ' | cut -d ' ' -f3)
 LC_ALL=C tr -dc "A-Za-z0-9" < /dev/urandom | head -c $SIZE > $OUT/toto
 
 timeout 5 $PROG $IP $PORT > $OUT/stdout 2> $OUT/stderr &

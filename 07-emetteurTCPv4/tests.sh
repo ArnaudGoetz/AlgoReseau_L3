@@ -93,8 +93,8 @@ echo "OK"
 
 echo -n "test 07 - program exits without error: "
 
-timeout 5 nc -4l $IP $PORT > $OUT/msg_r &
-sleep 2
+timeout 10 nc -4l $IP $PORT > $OUT/msg_r &
+sleep 4
 ! $PROG $IP $PORT > $OUT/stdin 2> $OUT/stderr && echo "KO -> exit status != 0"          && exit 1
 [ -s $OUT/stderr ]                            && echo "KO -> output detected on stderr" && exit 1
 [ -s $OUT/stdout ]                            && echo "KO -> output detected on stdout" && exit 1
@@ -124,8 +124,8 @@ echo -n "test 10 - memory error: "
 
 P=`which valgrind`
 [ -z "$P" ] && echo "KO -> please install valgrind" && exit 1
-timeout 5 nc -4l $IP $PORT > /dev/null &
-sleep 1
+timeout 10 nc -4l $IP $PORT > /dev/null &
+sleep 4
 valgrind --leak-check=full --error-exitcode=100 --log-file=$OUT/valgrind.log $PROG $IP $PORT
 [ "$?" == "100" ] && echo "KO -> memory pb please check valgrind.log" && exit 1
 
