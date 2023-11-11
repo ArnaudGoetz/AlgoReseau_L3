@@ -27,9 +27,9 @@ Vous afficherez sur la sortie standard la réponse du serveur.
 
 Vous pouvez tester votre programme sur les serveurs suivants :
 
-    ip6.me     // Dual stack IPv6 and IPv4 (preference depends on your OS/client) 
-    ip4.me     // IPv4 only
-    ip6only.me // IPv6 only
+    mai-reseau-get.psi.ad.unistra.fr     // Dual stack IPv6 and IPv4 (preference depends on your OS/client) 
+    mai-reseau-get-v4.psi.ad.unistra.fr  // IPv4 only
+    mai-reseau-get-v6.psi.ad.unistra.fr  // IPv6 only
 
 ## Validation
 
