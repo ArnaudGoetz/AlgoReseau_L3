@@ -55,7 +55,7 @@ echo ".........OK"
 
 echo -n "test 04 - error on getaddrinfo: "
 
-nc fdjkfslkfj 80 > /dev/null 2> $OUT/error
+nc -n fdjkfslkfj 80 > /dev/null 2> $OUT/error
 ERROR=$(grep -o '\S*$' $OUT/error)
 
 $PROG fdjkfslkfj $PORT > $OUT/stdout 2> $OUT/stderr && echo "KO -> exit status $?"            && exit 1
