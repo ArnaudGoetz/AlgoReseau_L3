@@ -39,7 +39,7 @@ int main (int argc, char * argv[])
     st.ai_family = AF_UNSPEC;
     st.ai_protocol = 0;
     st.ai_socktype = SOCK_STREAM;
-    st.ai_flags = 0;
+    st.ai_flags = AI_NUMERICSERV;
 
     struct addrinfo *list;
 
