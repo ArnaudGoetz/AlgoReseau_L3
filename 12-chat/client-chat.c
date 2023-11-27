@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
     if (bind(sockfd, (struct sockaddr *)local_addr, sizeof *local_addr) == -1) {
         if (errno == EINVAL || errno == EADDRINUSE) {
             // Le user doit entrer /HELO comme message
-            CHECK(sendto(sockfd, "/HELO", sizeof("/HELO"), 0, (struct sockaddr *)local_addr, sizeof *local_addr));
+            CHECK(sendto(sockfd, "/HELO", strlen("/HELO"), 0, (struct sockaddr *)local_addr, sizeof *local_addr));
         }
     } else {
         // Case when no client is present
