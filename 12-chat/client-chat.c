@@ -49,12 +49,12 @@ int main(int argc, char *argv[]) {
     /* Check if a client is already present */
     if (bind(sockfd, (struct sockaddr *)local_addr, sizeof *local_addr) == -1) {
         if (errno == EINVAL || errno == EADDRINUSE) {
-        
+            // Le user doit entrer /HELO comme message
             CHECK(sendto(sockfd, "/HELO", sizeof("/HELO"), 0, (struct sockaddr *)local_addr, sizeof *local_addr));
         }
     } else {
         // Case when no client is present
-        printf("Waiting for a client to connect...\n");
+        //printf("Waiting for a client to connect...\n");
 
         char expectedMessage[] = "/HELO";
         struct sockaddr_storage sender_ss;
@@ -63,20 +63,30 @@ int main(int argc, char *argv[]) {
 
         while (!connected) {
             // Wait for incoming message
-            ssize_t bytes_received = recvfrom(sockfd, buffer, SIZE, 0, (struct sockaddr *)sender_addr, &sender_addr_len);
+            ssize_t bytes_received = recvfrom(sockfd, buffer, SIZE - 1, 0, (struct sockaddr *)sender_addr, &sender_addr_len);
             CHECK(bytes_received);
 
             if (bytes_received > 0) {
                 buffer[bytes_received] = '\0';
-                if (strcmp(buffer, expectedMessage) == 0) 
-                {
-                    printf("New user me dit: %s \n", buffer);
+                if (strncmp(buffer, expectedMessage, 5) == 0) {
+                    //printf("New user me dit: %s \n", buffer);
+
+                    char host[NI_MAXHOST];
+                    char serv[NI_MAXSERV];
+                    int err = getnameinfo((struct sockaddr *)sender_addr, sender_addr_len, host, NI_MAXHOST, serv, NI_MAXSERV, NI_NUMERICHOST | NI_NUMERICSERV);
+                    if (err != 0) {
+                        fprintf(stderr, "getnameinfo: %s\n", gai_strerror(err));
+                        return EXIT_FAILURE;
+                    }
+
+                    // infos du sender copiés dans in6
                     memcpy(local_addr, sender_addr, sizeof(*sender_addr));
+                    printf("%s %s\n", host, serv);
                     connected = 1;
                 } 
-                else 
-                {
+                else {
                     printf("Received message is not /HELO. Continuing to wait for the correct message...\n");
+                    connected = 0;
                 }
             }
         }
@@ -89,6 +99,7 @@ int main(int argc, char *argv[]) {
     fds[1].fd = sockfd;     
     fds[1].events = POLLIN; 
 
+    //char buffer2[SIZE];
     // Main loop
     while (1) {
         int result = poll(fds, 2, -1); 
@@ -97,18 +108,14 @@ int main(int argc, char *argv[]) {
         // user input
         if (fds[0].revents & POLLIN) 
         {
-            fgets(buffer, SIZE, stdin);
-            
-            size_t len = strlen(buffer);
-            if (len > 0 && buffer[len - 1] == '\n') {
-                buffer[len - 1] = '\0';
-            }
+            int r = read(0,buffer, SIZE);
+            CHECK(r);
+            buffer[r] = '\0';
 
-            sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr *)local_addr, sizeof *local_addr);
+            CHECK(sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr *)local_addr, sizeof *local_addr));
 
-            if (strcmp(buffer, "/QUIT") == 0) 
+            if (strncmp(buffer, "/QUIT", 5) == 0) 
             {
-                printf("I am exiting the chat.\n");
                 break; 
             }
         }
@@ -116,17 +123,16 @@ int main(int argc, char *argv[]) {
         // socket 
         if (fds[1].revents & POLLIN) 
         {
-            ssize_t bytes_received = recvfrom(sockfd, buffer, SIZE, 0, NULL, NULL);
+            ssize_t bytes_received = recvfrom(sockfd, buffer, SIZE-1, 0, NULL, 0);
             if (bytes_received > 0) {
         
-                buffer[bytes_received] = '\0';
-                printf("Message received: %s \n", buffer);
-
-                if (strcmp(buffer, "/QUIT") == 0) 
+                buffer[bytes_received] = '\0'; 
+                if (strncmp(buffer, "/QUIT", 5) == 0) 
                 {
-                    printf("The other user is exiting the chat.\n");
                     break; 
-                }
+                } 
+                printf("Message received: %s\n", buffer);
+
             }
         }
     }
