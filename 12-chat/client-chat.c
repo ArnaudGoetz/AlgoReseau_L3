@@ -13,6 +13,43 @@
 #define PORT(p) htons(p)
 #define SIZE 100
 
+#define MSG_HELO 1
+#define MSG_QUIT 2
+#define MSG_USER 3
+
+struct BinaryMessage {
+    uint8_t msg_t;  // par exemple, 1 pour /HELO, 2 pour /QUIT, 3 pour message utilisateur
+    uint8_t data[SIZE - 2];  // Taille fixe pour les données du message
+};
+
+// -------FONCTIONNALITE BINAIRE-----------
+#ifdef BIN
+
+// Fonction pour envoyer un message binaire
+void sendBinaryMessage(int sockfd, const char *buffer, struct sockaddr *local_addr) {
+    struct BinaryMessage userMessage;
+    userMessage.messageType = MSG_USER_MESSAGE;
+    strncpy((char *)userMessage.data, buffer, sizeof(userMessage.data));
+    CHECK(sendto(sockfd, &userMessage, sizeof(userMessage), 0, local_addr, sizeof *local_addr));
+}
+
+// Fonction pour recevoir un message binaire
+void receiveBinaryMessage(int sockfd) {
+    struct BinaryMessage receivedMessage;
+    ssize_t bytes_received = recvfrom(sockfd, &receivedMessage, sizeof(receivedMessage), 0, NULL, 0);
+    if (bytes_received > 0) {
+        if (receivedMessage.messageType == MSG_QUIT) {
+            exit(EXIT_SUCCESS);
+        } else if (receivedMessage.messageType == MSG_USER_MESSAGE) {
+            printf("User Message received: %s\n", receivedMessage.data);
+        }
+    }
+}
+
+#endif
+// -------FONCTIONNALITE BINAIRE-----------
+
+
 int main(int argc, char *argv[]) {
     /* Check if the correct number of arguments is provided */
     if (argc != 2) {
@@ -80,7 +117,7 @@ int main(int argc, char *argv[]) {
                     }
 
                     // infos du sender copiés dans in6
-                    memcpy(local_addr, sender_addr, sizeof(*sender_addr));
+                    //memcpy(local_addr, sender_addr, sizeof(*sender_addr));
                     printf("%s %s\n", host, serv);
                     connected = 1;
                 } 
@@ -112,20 +149,27 @@ int main(int argc, char *argv[]) {
             CHECK(r);
             buffer[r] = '\0';
 
+            #ifdef BIN
+            sendBinaryMessage(sockfd, buffer, (struct sockaddr *)local_addr);
+            #else 
             CHECK(sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr *)local_addr, sizeof *local_addr));
+            #endif
 
             if (strncmp(buffer, "/QUIT", 5) == 0) 
-            {
                 break; 
-            }
+            
         }
 
         // socket 
         if (fds[1].revents & POLLIN) 
-        {
+        {   
+
+            #ifdef BIN
+            receiveBinaryMessage(sockfd);
+            #else 
             ssize_t bytes_received = recvfrom(sockfd, buffer, SIZE-1, 0, NULL, 0);
             if (bytes_received > 0) {
-        
+                
                 buffer[bytes_received] = '\0'; 
                 if (strncmp(buffer, "/QUIT", 5) == 0) 
                 {
@@ -134,6 +178,7 @@ int main(int argc, char *argv[]) {
                 printf("Message received: %s\n", buffer);
 
             }
+            #endif
         }
     }
 
