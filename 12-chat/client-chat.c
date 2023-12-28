@@ -99,10 +99,19 @@ void broadcastMessage(int sockfd, const char *message, struct Users *shared_user
     for (int i = 0; i < shared_users->nb_connected + 1; i++) {
         // Pas s'envoyer à soi-même le message
         if (i != index){
+            #ifdef FILEIO
+            if ( strncmp(message,"/FILE",5) == 0)
+                sendFile(sockfd,message, &shared_users->tab_users[i].addr);
+            else{
+                sendto(sockfd, message, strlen(message), 0, (struct sockaddr *)&shared_users->tab_users[i].addr, sizeof shared_users->tab_users[i].addr);
+            }
+            #else
             sendto(sockfd, message, strlen(message), 0, (struct sockaddr *)&shared_users->tab_users[i].addr, sizeof shared_users->tab_users[i].addr);
+            #endif
         }
     }
 }
+
 #endif
 
 int main(int argc, char *argv[]) {
@@ -245,22 +254,27 @@ int main(int argc, char *argv[]) {
             CHECK(r);
             buffer[r] = '\0';
             #ifdef FILEIO
-            if ( strncmp(buffer,"/FILE",5) == 0){
-                sendFile(sockfd, buffer,local_addr);
-            }
-            else{
-                CHECK(sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr *)local_addr, sizeof *local_addr));
-            }
-            #else
+                #ifdef USR      // Combinaison des deux
+                 if (strncmp(buffer,"/HELO",5) != 0 && strncmp(buffer, "/QUIT", 5) != 0)
+                    broadcastMessage(sockfd,buffer, shared_users, index);
+                #else           // Seulement FILEIO
+                if ( strncmp(buffer,"/FILE",5) == 0){
+                    sendFile(sockfd, buffer,local_addr);
+                }
+                else{
+                    CHECK(sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr *)local_addr, sizeof *local_addr));
+                }
+                #endif  
+            #else   // Seulement USR
                 #ifdef USR
-                if (strncmp(buffer,"/HELO",5) != 0)
+                if (strncmp(buffer,"/HELO",5) != 0 && strncmp(buffer, "/QUIT", 5) != 0)
                     broadcastMessage(sockfd,buffer,shared_users, index);
                 #else
 
                 CHECK(sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr *)local_addr, sizeof *local_addr));
                 #endif
             #endif
-            
+
 
             if (strncmp(buffer, "/QUIT", 5) == 0) 
                 break; 
@@ -306,7 +320,7 @@ int main(int argc, char *argv[]) {
                         shared_users->tab_users[shared_users->nb_connected].id = shared_users->nb_connected;
                         memcpy(&shared_users->tab_users[shared_users->nb_connected].addr, sender_addr,
                                sizeof(struct sockaddr_in6));
-                        printf("nb_connected socket : %d\n", shared_users->nb_connected);
+                        //printf("nb_connected socket : %d\n", shared_users->nb_connected);
                         
                     }
                     #endif
@@ -330,6 +344,5 @@ int main(int argc, char *argv[]) {
     CHECK(shm_unlink(SHM_NAME));
 
     #endif
-
     return 0;
 }
